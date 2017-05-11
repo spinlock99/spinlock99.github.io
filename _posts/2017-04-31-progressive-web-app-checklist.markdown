@@ -15,8 +15,6 @@ checklist which breaks down all the things we think it takes to be a baseline
 pwa by providing a more meaningful offline experience, reaching interactive even
 faster and taking care of many more important details.
 
-# Baseline Progressive Web App Checklist
-
 > site is served over https
 
 If you don't have https yet, checkout letsencrypt.org to get started.
