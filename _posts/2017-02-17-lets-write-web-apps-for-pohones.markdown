@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Let's Write Web Apps for Phones"
-date:   2017-05-09 19:12:00 -0700
+date:   2017-02-17 19:12:00 -0700
 categories: pwa
 ---
 
