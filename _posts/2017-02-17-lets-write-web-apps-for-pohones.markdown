@@ -4,6 +4,7 @@ title:  "Let's Write Web Apps for Phones"
 date:   2017-02-17 19:12:00 -0700
 categories: pwa
 ---
+{% include google_analytics.html %}
 
 Over the next few weeks, I'll be walking your through how to create a modern
 mobile app using web technologies. Some people will always argue that mobile web
