@@ -13,3 +13,5 @@ build a web app that will fool engineers at one of silicon valley's hottest
 startups into thinking it's a native app.
 
 Say tuned...
+
+{% include ad_sense.html %}
