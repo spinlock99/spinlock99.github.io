@@ -4,6 +4,7 @@ title:  "Installing WebApps on SmartPhones"
 date:   2017-03-05 19:12:00 -0700
 categories: pwa
 ---
+{% include google_analytics.html %}
 
 ## Getting on the Homescreen
 

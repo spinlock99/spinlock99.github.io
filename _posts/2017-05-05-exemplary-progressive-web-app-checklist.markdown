@@ -4,6 +4,7 @@ title:  "Exemplary Progressive Web App Checklist"
 date:   2017-05-05 15:45:00 -0700
 categories: pwa
 ---
+{% include google_analytics.html %}
 
 ## Exemplary Progressive Web App Checklist
 

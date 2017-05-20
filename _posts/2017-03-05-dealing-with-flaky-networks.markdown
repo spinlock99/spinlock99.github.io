@@ -4,6 +4,7 @@ title:  "Dealing with Flaky Networks"
 date:   2017-03-05 19:12:00 -0700
 categories: pwa
 ---
+{% include google_analytics.html %}
 
 ## When the Network Goes Down, We Stay Up
 

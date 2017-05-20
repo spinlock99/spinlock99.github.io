@@ -4,6 +4,7 @@ title:  "The App Shell Model"
 date:   2017-03-05 19:12:00 -0700
 categories: pwa
 ---
+{% include google_analytics.html %}
 
 ## Cache what?
 
