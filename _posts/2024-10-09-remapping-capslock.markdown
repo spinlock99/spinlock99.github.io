@@ -6,7 +6,26 @@ categories: os
 ---
 {% include google_analytics.html %}
 
-## Remapping CAPSLOCK in Ubuntu
+## Upgrade
+## Keyd
+https://salsa.debian.org/rhansen/keyd
+https://launchpad.net/~keyd-team/+archive/ubuntu/ppa
+sudo add-apt-repository ppa:keyd-team/ppa
+sudo apt update
+sudo apt install keyd
+[no version set](https://github.com/asdf-vm/asdf/issues/557)
+
+## DotFiles
+
+## Document It
+This Jekyll Blog
+Annotations
+1 warning
+build
+The github-pages gem can't satisfy your Gemfile's dependencies. If you want to use a different Jekyll version or need additional dependencies, consider building Jekyll site with GitHub Actions: https://jekyllrb.com/docs/continuous-integration/github-actions/
+
+## ASDF
+
 
 > indexed
 
