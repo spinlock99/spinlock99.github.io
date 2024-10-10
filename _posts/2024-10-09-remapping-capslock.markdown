@@ -7,75 +7,95 @@ categories: os
 {% include google_analytics.html %}
 
 ## Upgrade
+I upgraded Ubuntu to 24.10 and my keybindings stopped working. I like to have
+CAPSLOCK set as a hyper key that acts like ESC when tapped and CTRL when used
+as a modifier. I then make the ESC key act as CAPSLOCK.
+
+After trying various options including:
+* gnome-tweeks
+* other stuff that I forget because the blog wasn't working yet so I wasn't
+writing stuff down.
+
+I decided to use `keyd` because it works directly with the kernel so it's more
+agnostic than other options which work with `X` or `Wayland`.
+
 ## Keyd
-https://salsa.debian.org/rhansen/keyd
-https://launchpad.net/~keyd-team/+archive/ubuntu/ppa
-sudo add-apt-repository ppa:keyd-team/ppa
-sudo apt update
-sudo apt install keyd
-[no version set](https://github.com/asdf-vm/asdf/issues/557)
+
+> Source
+
+[Github Repo](https://salsa.debian.org/rhansen/keyd)
+
+> Install
+
+[Ubuntu Packages](https://launchpad.net/~keyd-team/+archive/ubuntu/ppa)
+
+```
+$ sudo add-apt-repository ppa:keyd-team/ppa
+$ sudo apt update
+$ sudo apt install keyd
+```
+
+> Configure
+
+`/etc/keyd/default.conf`
+```
+[ids]
+
+*
+
+[main]
+
+# Maps capslock to escape when pressed and control when held.
+capslock = overload(control, esc)
+
+# Remaps the escape key to capslock
+esc = capslock
+```
+
+configure in dotfiles?
 
 ## DotFiles
 
 ## Document It
-This Jekyll Blog
+I checked out this Jekyll blog from github and made a few changes. But, when I
+pushed `master` to `github`, I found out that they'd changed their build system
+and I'd need to fix some `ruby` dependencies:
+
+```
 Annotations
 1 warning
 build
 The github-pages gem can't satisfy your Gemfile's dependencies. If you want to use a different Jekyll version or need additional dependencies, consider building Jekyll site with GitHub Actions: https://jekyllrb.com/docs/continuous-integration/github-actions/
+```
+
+So, I have to install `ruby` locally...
 
 ## ASDF
 
+I'm alread trying to use asdf for elixir so I might as well use it for Ruby too.
 
-> indexed
+### Download the Source
 
-Make sure that your site can be crawled by google and bing. You can use
-[fetch as google](https://support.google.com/webmasters/answer/6066468) to see
-how their webcrawler interprets your page.
+`$git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.1`
 
-> social
+### Edit `.bashrc`
 
-Leverage facebook and twitter to make your app [socially discoverable](https://developers.google.com/web/fundamentals/discovery-and-monetization/social-discovery/).
+```
+. "$HOME/.asdf/asdf.sh"
+. "$HOME/.asdf/completions/asdf.bash"
+```
 
-> use the history api
+### Install Ruby
 
-For single page apps, ensure the site doesn't use fragment identifiers. For
-example everything after the `#!` in `https://example.com/#!user/26601`.
+`$ asdf plugin add ruby`
 
-> don't fuc the page
+[followed blog here](https://mac.install.guide/rubyonrails/7)
 
-If your page jumps when your load it your have a flash of unformatted content
-(fuc'd) page. make sure that images and ads have fixed sizing in css or inline
-the element.
+[no version set](https://github.com/asdf-vm/asdf/issues/557)
 
-> remember scroll postion
+## Putting it All Together
 
-When the user clicks the back button, they expect to see the page as it was when
-they clicked off of it. Store scroll position and any other page state in the
-history api so that you can restore it when the user clicks back to the page. A
-good routing library should handle this for you.
-
-> inputs aren't hidden by the keyboard
-
-Use features like `Element.scrollIntoView()` and `Element.scrollIntoViewIfNeeded()`
-to prevent the keyboard from covering input elements.
-
-> cache-first networking
-
-Use service workers to serve data from the cache and then pull it from the network.
-
-> push notifications
-
-* provide context to the user about hos notifications will be used
-* encourage users to turn on push notifications (but not too aggressively)
-* dim the screen when requesting permission
-* a good push notification is timely, precise and relevant
-* make it easy to enable and disable notifications
-
-> single sign on across devices
-
-Let your users sign in with their social network credentials.
-
-> payments
-
-Now that our app is baller lets make that money.
+```
+$ gem install jekyll bundler
+$ bundle exec jekyll serve
+```
