@@ -343,3 +343,35 @@ Connection to v2018-us-central1.gcp.ssh.gigalixir.com closed.
 ```
 
 ## Up Next ... Managing Node in ASDF
+
+> $ asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+
+> $ asdf list-all nodejs
+
+```
+0.1.14
+0.1.15
+0.1.16
+0.1.17
+0.1.18
+snip
+22.6.0
+22.7.0
+22.8.0
+22.9.0
+```
+
+> $ asdf install nodejs latest
+
+```
+Trying to update node-build... ok
+To follow progress, use 'tail -f /tmp/node-build.20241010205742.21029.log' or pass --verbose
+Downloading node-v22.9.0-linux-x64.tar.gz...
+-> https://nodejs.org/dist/v22.9.0/node-v22.9.0-linux-x64.tar.gz
+Installing node-v22.9.0-linux-x64...
+Installed node-v22.9.0-linux-x64 to /home/spinlock/.asdf/installs/nodejs/22.9.0
+```
+
+> $ asdf global nodejs latest
+
+> $ asdf local nodejs latest
