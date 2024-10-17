@@ -173,6 +173,7 @@ Last login: Wed Oct 16 12:18:59 2024 from 127.0.0.1
 ```
 
 > builder@Derico:~$ cd /var/www/haikuter/current
+
 > builder@Derico:/var/www/haikuter/current$ PORT=4001 MIX_ENV=prod mix phx.server
 
 ```
@@ -209,4 +210,18 @@ end
 14:27:37.003 request_id=F_8MEte2_HEwg7YAAALC [info] Sent 200 in 1ms
 14:27:38.851 request_id=F_8ME0Xz_PMwg7YAAALi [info] GET /
 14:27:38.852 request_id=F_8ME0Xz_PMwg7YAAALi [info] Sent 200 in 1ms
+```
+
+I forgot to create the database. I've corrected that now and we're working.
+
+> builder@Derico:/var/www/haikuter/current$ MIX_ENV=prod mix ecto.create
+
+```
+The database for Haikuter.Repo has already been created
+```
+
+> builder@Derico:/var/www/haikuter/current$ _build/prod/rel/haikuter/bin/migrate
+
+```
+19:33:15.108 [info] Migrations already up
 ```
