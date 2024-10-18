@@ -71,7 +71,7 @@ Environment=DATABASE_URL=ecto://username:password@staging.haikuter.com/haikuter_
 Environment=SECRET_KEY_BASE=snip
 Environment=LANG=en_US.UTF-8
 
-WorkingDirectory=/var/www/haikuter/current
+WorkingDirectory=/var/www/haikuter/current/_build/prod/rel/haikuter/
 ExecStart=/var/www/haikuter/current/_build/prod/rel/haikuter/bin/haikuter start
 ExecStop=/var/www/haikuter/current/_build/prod/rel/haikuter/bin/haikuter stop
 
@@ -98,4 +98,54 @@ haikuter[293272]: 08:52:07.224 [info] Access HaikuterWeb.Endpoint at https://sta
 google-chrome.desktop[293364]: Opening in existing browser session.
 haikuter[293272]: 08:52:45.211 request_id=F_9IYWz72PNnP4YAAAjE [info] GET /
 haikuter[293272]: 08:52:45.216 request_id=F_9IYWz72PNnP4YAAAjE [info] Sent 200 in 5ms
+```
+
+# Restarting the Service on Deploy
+
+Our `capistrano` deploy script will run as the `builder` user which does not have
+permission to start and stop daemons using `systemctl`. So, we need to create
+a SystemD service to watch `/var/www/haikuter/current` and restart `haikuter`
+when it changes:
+
+> spinlock@Derico:~/src/haikuter$ cat /etc/systemd/system/haikuter-watcher.service 
+
+```
+[Unit]
+Description=Haikuter Restarter
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart haikuter.service
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> spinlock@Derico:~/src/haikuter$ cat /etc/systemd/system/haikuter-watcher.path 
+
+```
+[Path]
+PathModified=/var/www/haikuter/current/
+
+[Install]
+WantedBy=multi-user.target
+```
+
+One problem with `haikuter-watcher-path` is that it will not recognize the symlink
+to `/var/www/haikuter/current` being changed by `capistrano` during the deploy.
+Instead, we touch `/var/www/haikuter/current` after the directory is moved:
+
+```
+namespace :symlink do
+  task :release do
+    invoke "deploy:symlink:restart_service"
+  end
+
+  task :restart_service do
+    on roles(:app) do |host|
+      execute(:touch, '/var/www/haikuter/current')
+    end
+  end
+end
 ```
