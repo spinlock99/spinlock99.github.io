@@ -205,4 +205,23 @@ server {
 }
 ```
 
+# Run the Migrations
+
 > $ sudo systemctl restart nginx
+
+> builder@Derico:/var/www/haikuter/current$ export DATABASE_URL=ecto://postgres:postgres@staging.haikuter.com/haikuter_prod
+
+> builder@Derico:/var/www/haikuter/current$ echo $DATABASE_URL
+
+```
+ecto://postgres:postgres@staging.haikuter.com/haikuter_prod
+```
+
+> builder@Derico:/var/www/haikuter/current$ export SECRET_KEY_BASE=snip
+> builder@Derico:/var/www/haikuter/current$ _build/prod/rel/haikuter/bin/haikuter eval "Haikuter.Release.migrate"
+
+```
+15:14:10.703 [info] == Running 20241017170942 Haikuter.Repo.Migrations.CreateUsers.change/0 forward
+15:14:10.706 [info] create table users
+15:14:10.747 [info] == Migrated 20241017170942 in 0.0s
+```
