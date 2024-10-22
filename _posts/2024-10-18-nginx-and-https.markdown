@@ -225,3 +225,31 @@ ecto://postgres:postgres@staging.haikuter.com/haikuter_prod
 15:14:10.706 [info] create table users
 15:14:10.747 [info] == Migrated 20241017170942 in 0.0s
 ```
+
+> spinlock@Derico:~/src/haikuter$ sudo vi /etc/systemd/system/haikuter.service
+
+```
+[Unit]
+Description=Haikuter Daemon
+
+[Service]
+Type=simple
+User=builder
+Group=builder
+Restart=on-failure
+Environment=LANG=en_US.UTF-8
+Environment=MIX_ENV=prod
+Environment=PHX_SERVER=true
+Environment=PORT=4001
+Environment=DATABASE_URL=ecto://postgres:postgres@staging.haikuter.com/haikuter_prod
+Environment=SECRET_KEY_BASE=snip
+Environment=PHX_HOST=staging.haikuter.com
+
+WorkingDirectory=/var/www/haikuter/current/
+ExecStartPre=/var/www/haikuter/current/_build/prod/rel/haikuter/bin/haikuter "Haikuter.Release.migrate"
+ExecStart=/var/www/haikuter/current/_build/prod/rel/haikuter/bin/haikuter start
+ExecStop=/var/www/haikuter/current/_build/prod/rel/haikuter/bin/haikuter stop
+
+[Install]
+WantedBy=multi-user.target
+```
