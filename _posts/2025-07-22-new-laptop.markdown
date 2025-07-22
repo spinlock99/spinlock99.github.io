@@ -69,3 +69,48 @@ git deborig HEAD
 dpkg-buildpackage -us -uc
 sudo apt install ../rtw89-dkms_1.0.2-3_all.deb
 ```
+
+## Upgrade to Debian 13 - Trixie
+
+The kernel modules didn't work so I decided to upgrade the sytem to testing
+because it uses Linux version 6.12 which should work with the modules.
+
+### Update Sources List
+
+First, we edit `/etc/apt/sources.list` and replace `bookworm` with `trixie`s:
+
+```
+#deb cdrom:[Debian GNU/Linux 12.11.0 _Bookworm_ - Official amd64 NETINST with firmware 20250517-09:51]/ trixie contrib main non-free-firmware
+
+deb http://deb.debian.org/debian/ trixie main non-free-firmware
+deb-src http://deb.debian.org/debian/ trixie main non-free-firmware
+
+deb http://security.debian.org/debian-security trixie-security main non-free-firmware
+deb-src http://security.debian.org/debian-security trixie-security main non-free-firmware
+
+# trixie-updates, to get updates before a point release is made;
+# see https://www.debian.org/doc/manuals/debian-reference/ch02.en.html#_updates_and_backports
+deb http://deb.debian.org/debian/ trixie-updates main non-free-firmware
+deb-src http://deb.debian.org/debian/ trixie-updates main non-free-firmware
+
+# This system was installed using small removable media
+# (e.g. netinst, live or single CD). The matching "deb cdrom"
+# entries were disabled at the end of the installation process.
+# For information about how to configure apt package sources,
+# see the sources.list(5) manual.
+```
+
+### Upgrade the System
+
+Given that this was a clean install, I was pretty agressive with the distribution
+upgrade because I knew it would be easy to start over from the USB.
+
+```
+apt update
+apt upgrade
+apt full-upgrde
+```
+
+And ... everything went great. The sytem booted right up and the WIFI is working
+great. I should go back and do a clean install to make sure I needed the Realtek
+drivers and that Trixie doesn't just work right out of the box.
