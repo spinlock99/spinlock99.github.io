@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "New Laptop: HP ProBook"
-date:   2025-07-22 07:00:00 -0700
+title:  "Haikuter Reboot"
+date:   2025-09-03 07:00:00 -0700
 categories: debian
 ---
 {% include google_analytics.html %}
