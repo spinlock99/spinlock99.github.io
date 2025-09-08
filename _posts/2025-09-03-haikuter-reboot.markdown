@@ -178,3 +178,12 @@ spinlock@derico:~/src/haikuter$ cap staging deploy --dry-run
 spinlock@derico:~/src/haikuter$
 
 ```
+
+# add staging.haikuter.com to /etc/hosts
+
+# add builder to Derico
+
+```
+spinlock@derico:~/src/haikuter$ sudo adduser --verbose builder
+```
+
