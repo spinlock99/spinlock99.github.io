@@ -8,6 +8,8 @@ categories: debian
 
 # Bootleg
 
+We need to add a custom installation of `bootleg` because it's no longer maintined.
+
 > mix.ex
 
 ```
@@ -19,3 +21,21 @@ categories: debian
  ]
 end
 ```
+
+We also need to add a custom version of `ssh_client_key_api to use ed_25591 keys
+in ssh.
+
+> bootleg/mix.ex
+
+```
+  defp deps do
+   [
+     {:sshkit, "0.3.0"},
+     {:ssh_client_key_api, path: "../ssh_client_key_api"},
+     {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+     <snip>
+   ]
+ end
+ ```
+
+ We've also updated credo to the latest version.
