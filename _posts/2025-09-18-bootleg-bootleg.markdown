@@ -6,4 +6,14 @@ categories: debian
 ---
 {% include google_analytics.html %}
 
-# Bootleg Bootleg
+# Bootleg
+
+```
+ defp deps do
+ [
+   {:phoenix, "~> 1.8.1"},
+   <snip>
+   {:bootleg, path: "../bootleg", only: :dev}
+ ]
+end
+```
