@@ -31,7 +31,7 @@ in ssh.
   defp deps do
    [
      {:sshkit, "0.3.0"},
-     {:ssh_client_key_api, path: "../ssh_client_key_api"},
+     {:ssh_client_key_api, github: "axelson/ssh_client_key_api", branch: "suppor
      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
      <snip>
    ]
