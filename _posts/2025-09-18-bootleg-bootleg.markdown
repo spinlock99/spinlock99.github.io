@@ -40,7 +40,7 @@ in ssh.
 
  We've also updated credo to the latest version.
 
-## Update Build Task
+## Update Remote Generate Release Task
 
 Use Mix Releases rather than Distillery Releaseses:
 
@@ -79,4 +79,15 @@ index 4723da7..e2854e8 100644
 -  UI.info("Saved: releases/#{app_version}.tar.gz")
 +  UI.info("Saved: releases/#{app_version}")
  end
+```
+
+## Git Ignore Releases
+
+Add releases directory to the git ignore file:
+
+> .gitignore
+
+```
+# Releases
+/releases/
 ```
