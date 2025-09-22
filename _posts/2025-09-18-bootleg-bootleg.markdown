@@ -95,30 +95,26 @@ Add releases directory to the git ignore file:
 ## Build Role
 
 Bootleg will compile the release with the `build` role. It will `ssh` into
-the build server as the specified `user`. It then compiles the release in the
+the build server as the specified `user`. I am using my local machine as the
+build server and I've created a user named `builder` that will be used for all
+buld tasks. It then compiles the release in the
 `workspace` directory. We have also specified `ed25519` encryption for `ssh`.
 
 > config/deploy.exs
 
 ```
-use Bootleg.DSL
-
-# Configure the following roles to match your environment.
-# `build` defines what remote server your distillery release should be built on.
-#
-# Some available options are:
-#  - `user`: ssh username to use for SSH authentication to the role's hosts
-#  - `password`: password to be used for SSH authentication
-#  - `identity`: local path to an identity file that will be used for SSH authentication instead of a password
-#  - `workspace`: remote file system path to be used for building and deploying this Elixir project
-use Bootleg.DSL
-alias Bootleg.{Config, UI}
 
 role :build, "localhost", workspace: "/home/builder/build",
                           user: "builder",
                           identity: "~/.ssh/id_ed25519",
                           silently_accept_hosts: true
 
+```
+
+Then, we define `run_phoenix_tasks` to handle the Phoenix specific steps in
+the build process.
+
+```
 task :run_phoenix_tasks do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
@@ -135,9 +131,20 @@ before_task(:remote_generate_release, :run_phoenix_tasks)
 
 ```
 
+Now, run the build!
+
 > $mix bootleg.build
+
+Bootleg will build the release on the build machine and copy the release into
+the `releases` directory.
 
 > $cd releases/0.1.0/bin
 
+Define `DATABASE_URL` and `SECRET_KEY_BASE` and run the server:
+
 > DATABASE_URL=ecto://postgres:postgres@staging.haikuter.com/bootleg_test_prod SECRET_KEY_BASE=<snip> ./server
 
+```
+12:07:08.882 [info] Running BootlegTestWeb.Endpoint with Bandit 1.8.0 at :::4000 (http)
+12:07:08.885 [info] Access BootlegTestWeb.Endpoint at https://example.com
+```
