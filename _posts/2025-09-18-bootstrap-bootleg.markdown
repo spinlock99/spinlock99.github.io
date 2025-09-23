@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Bootleg Bootleg"
+title:  "Bootstrap Bootleg"
 date:   2025-09-18 07:00:00 -0700
 categories: debian
 ---
