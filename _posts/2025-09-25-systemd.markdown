@@ -7,4 +7,147 @@ categories: debian
 {% include google_analytics.html %}
 
 # SystemD
+systemd is a suite of basic building blocks for a Linux system. It provides a system and service manager that runs as PID 1 and starts the rest of the system.
 
+systemd provides aggressive parallelization capabilities, uses socket and D-Bus activation for starting services, offers on-demand starting of daemons, keeps track of processes using Linux control groups, maintains mount and automount points, and implements an elaborate transactional dependency-based service control logic. systemd supports SysV and LSB init scripts and works as a replacement for sysvinit.
+
+Other parts include a logging daemon, utilities to control basic system configuration like the hostname, date, locale, maintain a list of logged-in users and running containers and virtual machines, system accounts, runtime directories and settings, and daemons to manage simple network configuration, network time synchronization, log forwarding, and name resolution.
+
+(This description was shamelessly stolen from systemd.io.)
+
+For our purposes, we will use SystemD to run the Phoneix application as a
+system deamon. This means that SystemD will be responsible for restarting the
+application on failure. In a future post, we'll also make SystemD responsible
+for restarting the Application on a deploy.
+
+# Unit File Template
+
+> config/systemd/application.service.eex
+
+```
+  [Unit]
+  Description=Bootleg Test Daemon
+
+  [Service]
+  Type=simple
+  User=<%= user %>
+  Group=<%= user %>
+  Restart=on-failure
+
+  Environment=PORT=<%= port %>
+  Environment=MIX_ENV=<%= mix_env %>
+  Environment=PHX_SERVER=true
+  Environment=PHX_HOST=<%= host_name %>
+  Environment=DATABASE_URL=<%= database_url %>
+  Environment=SECRET_KEY_BASE=<%= secret_key_base %>
+  Environment=LANG=en_US.UTF-8
+
+  WorkingDirectory=<%= workspace %>/<%= app_name %>
+  ExecStart=<%= workspace %>/<%= app_name %>/bin/<%= app_name %> start
+  ExecStop=<%= workspace %>/<%= app_name %>/bin/<%= app_name %> stop
+
+  [Install]
+  WantedBy=multi-user.target
+```
+
+We replace all of the application and server specific information with EEx tags
+so that we can create a unit file that is specific to out app and server. One
+issue is that `SECRET_KEY_BASE` is going to be written to the unit file. Maybe
+SystemD Credentials could be a solution.
+
+## EEx
+
+Using `EEx`, we can just read in the template file and replace all of the
+variables at once:
+
+```
+service = EEx.eval_file unit_file_template, app_name: app_name,
+                                            workspace: workspace,
+                                            user: user,
+                                            port: port,
+                                            mix_env: mix_env,
+                                            host_name: host_name,
+                                            secret_key_base: secret_key_base,
+                                            database_url: database_url
+File.write!("#{app_name}.service", service)
+```
+
+## Database Credentials
+
+They're hardcoded right now. Should I prompt the user for them? Read them from
+`.env` or something?
+
+## Secret Key Base
+
+The way I'm getting the secret feels hacky:
+
+```
+{output, _} = System.cmd("mix", ["phx.gen.secret"])
+secret_key_base = String.split(output, "\n", trim: true) |> Enum.at(-1)
+```
+
+I can't just `invoke` another mix task because it prints the key to the
+terminal but does not return it to the program. So, I'm running `mix` with `System.cmd`
+to actually capture the output.
+
+# Upload to Application Server
+
+Bootleg makes is super easy to upload the generated unit file to the application
+server.
+
+```
+remote_path = "#{app_name}.service"
+local_archive_folder = "#{File.cwd!()}"
+local_path = Path.join(local_archive_folder, "#{app_name}.service")
+UI.info("Upload SystemD Service Definition")
+upload(:app, local_path, remote_path)
+```
+
+# Link SystemD Service Definition
+
+Then, You just have to create a link from SystemD's system unit files folder
+to the unit file we just uploaded to the workspace.
+
+```
+spinlock@derico:~/src/bootleg_test$ mix bootleg.invoke init_systemd
+Initalizing SystemD...
+Upload SystemD Service Definition
+
+[localhost ] (export BOOTLEG_ENV="production" REPLACE_OS_VARS="true" && /usr/bin/env mkdir -p /var/www/bootleg)
+
+[localhost ] UPLOAD bootleg_test.service -> /var/www/bootleg/bootleg_test.service
+
+  You should now create a link in /etc/systemd/system/
+  to allow systemd to manage the bootleg_test service.
+  Then, enable the service.
+
+  sudo ln -s /var/www/bootleg/bootleg_test.service \
+             /etc/systemd/system/bootleg_test.service
+  systemctl enable bootleg_test
+  systemctl start bootleg_test
+
+spinlock@derico:~/src/bootleg_test$ sudo ln -s /var/www/bootleg/bootleg_test.service \
+             /etc/systemd/system/bootleg_test.service
+  systemctl enable bootleg_test
+[sudo] password for spinlock:
+Created symlink '/etc/systemd/system/multi-user.target.wants/bootleg_test.service' → '/var/www/bootleg/bootleg_test.service'.
+spinlock@derico:~/src/bootleg_test$ systemctl status bootleg_test
+○ bootleg_test.service - Bootleg Test Daemon
+     Loaded: loaded (/etc/systemd/system/bootleg_test.service; enabled; preset: enabled)
+     Active: inactive (dead)
+spinlock@derico:~/src/bootleg_test$ systemctl start bootleg_test
+spinlock@derico:~/src/bootleg_test$ systemctl status bootleg_test
+● bootleg_test.service - Bootleg Test Daemon
+     Loaded: loaded (/etc/systemd/system/bootleg_test.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2025-09-26 19:14:17 PDT; 4s ago
+ Invocation: 07766f698471458e85642e80de399931
+   Main PID: 5809 (beam.smp)
+      Tasks: 51 (limit: 37693)
+     Memory: 241.8M (peak: 251.5M)
+        CPU: 4.433s
+     CGroup: /system.slice/bootleg_test.service
+             ├─5809 /var/www/bootleg/bootleg_test/erts-16.0.3/bin/beam.smp -- -root /var/www/bootleg/bootleg_test -bindir /var/www/bootleg/bootleg_test/erts-16.0.3/bin -pro>
+             ├─5861 erl_child_setup 1024
+             ├─5909 /var/www/bootleg/bootleg_test/erts-16.0.3/bin/inet_gethost 4
+             └─5910 /var/www/bootleg/bootleg_test/erts-16.0.3/bin/inet_gethost 4
+```
