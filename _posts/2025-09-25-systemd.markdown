@@ -60,7 +60,7 @@ SystemD Credentials could be a solution.
 Using `EEx`, we can just read in the template file and replace all of the
 variables at once:
 
-```
+```elixir
 service = EEx.eval_file unit_file_template, app_name: app_name,
                                             workspace: workspace,
                                             user: user,
