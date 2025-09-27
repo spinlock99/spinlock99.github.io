@@ -24,7 +24,7 @@ for restarting the Application on a deploy.
 
 > config/systemd/application.service.eex
 
-```
+```bash
   [Unit]
   Description=Bootleg Test Daemon
 
@@ -81,7 +81,7 @@ They're hardcoded right now. Should I prompt the user for them? Read them from
 
 The way I'm getting the secret feels hacky:
 
-```
+```elixir
 {output, _} = System.cmd("mix", ["phx.gen.secret"])
 secret_key_base = String.split(output, "\n", trim: true) |> Enum.at(-1)
 ```
@@ -95,7 +95,7 @@ to actually capture the output.
 Bootleg makes is super easy to upload the generated unit file to the application
 server.
 
-```
+```elixir
 remote_path = "#{app_name}.service"
 local_archive_folder = "#{File.cwd!()}"
 local_path = Path.join(local_archive_folder, "#{app_name}.service")
@@ -108,7 +108,7 @@ upload(:app, local_path, remote_path)
 Then, You just have to create a link from SystemD's system unit files folder
 to the unit file we just uploaded to the workspace.
 
-```
+```bash
 spinlock@derico:~/src/bootleg_test$ mix bootleg.invoke init_systemd
 Initalizing SystemD...
 Upload SystemD Service Definition
