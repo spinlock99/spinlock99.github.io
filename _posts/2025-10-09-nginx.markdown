@@ -1,0 +1,100 @@
+---
+layout: post
+title:  "SystemD"
+date:   2025-09-23 07:00:00 -0700
+categories: debian
+---
+{% include google_analytics.html %}
+
+# NginX
+
+# Configuration File Template
+
+> spinlock@derico:~/src/bootleg_test$ cat config/nginx/application.conf.eex
+
+```
+upstream <%= app_name %> {
+  server 127.0.0.1:<%= app_port %> max_fails=5 fail_timeout=60s;
+}
+
+server {
+  server_name <%= host_name %>;
+
+  location / {
+    proxy_http_version 1.1;
+
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header X-Cluster-Client-Ip $remote_addr;
+    proxy_set_header X-Forward-Host $host;
+    proxy_set_header X-Forward-Port $server_port;
+    proxy_set_header X-Forward-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Real-IP $remote_addr;
+
+    proxy_pass http://<%= app_name %>;
+  }
+
+  listen 443 ssl;
+  ssl_certificate /etc/ssl/certs/<%= host_name %>.crt;
+  ssl_certificate_key /etc/ssl/private/<%= host_name %>.key;
+}
+
+
+server {
+  if ($host = <%= host_name %>) {
+      return 301 https://$host$request_uri;
+  }
+
+
+  server_name <%= host_name %>;
+
+  listen 80;
+  listen [::]:80;
+  return 404;
+}
+```
+
+We replace all of the application and server specific information with EEx tags
+so that we can create a configuration file.
+
+## EEx
+
+Using `EEx`, we can just read in the template file and replace all of the
+variables at once:
+
+```elixir
+nginx_config = EEx.eval_file nginx_config_template, app_name: app_name,
+                                                    app_port: app_port,
+                                                    host_name: host_name
+File.write!("releases/#{app_name}.conf", nginx_config)
+```
+# Upload to Application Server
+
+Bootleg makes is super easy to upload the generated unit file to the application
+server.
+
+```elixir
+remote_path = "#{app_name}.conf"
+local_archive_folder = "#{File.cwd!()}/releases"
+local_path = Path.join(local_archive_folder, "#{app_name}.conf")
+
+upload(:app, local_path, remote_path)
+```
+
+# Link and Reload NginX Config File
+
+Debian takes a modulear approach to config files. For Nginx, this means that
+configuration files for specific servers are stored in the `sites-available/`
+directory and then promoted to production by linking to them from the
+`sites-enabled/` directory. Because we are trying to keep our deploy artifacts
+to the `/var/www` directory, we will simply create a link in `sites-enabled/`
+to there.
+
+```bash
+sudo ln -s #{workspace}/#{app_name}.conf /etc/nginx/sites-enabled/#{app_name}.conf
+sudo nginx -s reload
+[sudo] password for spinlock:
+2025/10/09 13:35:07 [notice] 35645#35645: signal process started
+```
