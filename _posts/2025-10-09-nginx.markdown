@@ -1,14 +1,18 @@
 ---
 layout: post
-title:  "SystemD"
-date:   2025-09-23 07:00:00 -0700
+title:  "Nginx"
+date:   2025-10-09 07:00:00 -0700
 categories: debian
 ---
 {% include google_analytics.html %}
 
 # NginX
 
-# Configuration File Template
+nginx ("engine x") is an HTTP web server, reverse proxy, content cache, load
+balancer, TCP/UDP proxy server, and mail proxy server. Originally written by
+Igor Sysoev and distributed under the 2-clause BSD License.
+
+## Configuration File Template
 
 > spinlock@derico:~/src/bootleg_test$ cat config/nginx/application.conf.eex
 
@@ -59,7 +63,7 @@ server {
 We replace all of the application and server specific information with EEx tags
 so that we can create a configuration file.
 
-## EEx
+### EEx
 
 Using `EEx`, we can just read in the template file and replace all of the
 variables at once:
@@ -70,7 +74,7 @@ nginx_config = EEx.eval_file nginx_config_template, app_name: app_name,
                                                     host_name: host_name
 File.write!("releases/#{app_name}.conf", nginx_config)
 ```
-# Upload to Application Server
+## Upload to Application Server
 
 Bootleg makes is super easy to upload the generated unit file to the application
 server.
@@ -83,7 +87,7 @@ local_path = Path.join(local_archive_folder, "#{app_name}.conf")
 upload(:app, local_path, remote_path)
 ```
 
-# Link and Reload NginX Config File
+## Link and Reload NginX Config File
 
 Debian takes a modulear approach to config files. For Nginx, this means that
 configuration files for specific servers are stored in the `sites-available/`
@@ -98,3 +102,110 @@ sudo nginx -s reload
 [sudo] password for spinlock:
 2025/10/09 13:35:07 [notice] 35645#35645: signal process started
 ```
+
+Nginx fails because we don't have an SSL Certificate for the application yet:
+```bash
+spinlock@derico:~/src/bootleg_test$ sudo systemctl restart nginx
+Job for nginx.service failed because the control process exited with error code.
+See "systemctl status nginx.service" and "journalctl -xeu nginx.service" for details.
+spinlock@derico:~/src/bootleg_test$ sudo systemctl status nginx.service
+× nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: failed (Result: exit-code) since Thu 2025-10-09 13:46:23 PDT; 19s ago
+   Duration: 3h 19min 20.412s
+ Invocation: 500a0e1c098d46d98d4f7d7e2caafd0f
+       Docs: man:nginx(8)
+    Process: 37874 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=1/FAILURE)
+   Mem peak: 3.3M
+        CPU: 32ms
+
+Oct 09 13:46:23 derico systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...
+Oct 09 13:46:23 derico nginx[37874]: 2025/10/09 13:46:23 [emerg] 37874#37874: cannot load certificate "/etc/ssl/certs/bootleg_test.crt": BIO_new_file() failed (SSL: error:8>
+Oct 09 13:46:23 derico nginx[37874]: nginx: configuration file /etc/nginx/nginx.conf test failed
+Oct 09 13:46:23 derico systemd[1]: nginx.service: Control process exited, code=exited, status=1/FAILURE
+Oct 09 13:46:23 derico systemd[1]: nginx.service: Failed with result 'exit-code'.
+Oct 09 13:46:23 derico systemd[1]: Failed to start nginx.service - A high performance web server and a reverse proxy server.
+```
+
+# Self-Signed Cert
+
+## Become a Certificate Authority
+
+First, create a key for the Certificate Authority (CA):
+```
+System.cmd(openssl, ["genrsa", "-out","#{app_name}_ca.key"], shell_args)
+```
+
+Then, use the key to generate the CA certificate:
+```
+System.cmd(
+  openssl,
+  [
+    "req",
+    "-new",
+    "-x509",
+    "-noenc",
+    "-days", "825",
+    "-extensions", "v3_ca",
+    "-key", "#{app_name}_ca.key",
+    "-out", "#{app_name}_ca.pem",
+    "-subj", "/CN=#{common_name} Root CA/"
+  ],
+  shell_args
+)
+```
+
+## Create a Self Signed Cert
+
+Create another key for the self-signed certificate:
+```
+System.cmd(openssl, ["genrsa", "-out", "#{app_name}.key"], shell_args)
+```
+Use the key to create a Certificate Signing Request (CSR):
+```
+System.cmd(
+  openssl,
+  [
+    "req",
+    "-new",
+    "-subj", "/CN=#{host_name}/",
+    "-key", "#{app_name}.key",
+    "-out", "#{app_name}.csr"
+  ],
+  shell_args
+)
+ ```
+
+We use an extension configuration file to configure the self-signed certificate:
+> extensions.conf
+
+```
+authorityKeyIdentifier = keyid,issuer
+basicConstraints       = CA:FALSE
+keyUsage               = digitalSignature, nonRepudiation, keyEncipherment, dataE
+subjectAltName         = @alt_names
+
+[alt_names]
+DNS.1 = <%= host_name %>  # Be sure to include the domain name here because Commo
+DNS.2 = staging.<%= host_name %> # Optionally, add additional domains (I've added
+IP.1 = 127.0.0.1 # Optionally, add an IP address (if the connection which you hav
+```
+Putting it all together, we can now generate the self-signed certificate:
+ ```
+System.cmd(
+  openssl,
+  [
+    "x509",
+    "-req",
+    "-sha256",
+    "-days", "825",
+    "-in", "#{app_name}.csr",
+    "-out", "#{app_name}.crt",
+    "-CA", "#{app_name}_ca.pem",
+    "-CAkey", "#{app_name}_ca.key",
+    "-CAcreateserial",
+    "-extfile", "extensions.conf"
+  ],
+  shell_args
+)
+ ```
