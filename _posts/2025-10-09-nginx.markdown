@@ -158,11 +158,11 @@ System.cmd(
 ## Create a Self Signed Cert
 
 Create another key for the self-signed certificate:
-```
+```elixir
 System.cmd(openssl, ["genrsa", "-out", "#{app_name}.key"], shell_args)
 ```
 Use the key to create a Certificate Signing Request (CSR):
-```
+```elixir
 System.cmd(
   openssl,
   [
@@ -179,7 +179,7 @@ System.cmd(
 We use an extension configuration file to configure the self-signed certificate:
 > extensions.conf
 
-```
+```bash
 authorityKeyIdentifier = keyid,issuer
 basicConstraints       = CA:FALSE
 keyUsage               = digitalSignature, nonRepudiation, keyEncipherment, dataE
@@ -191,7 +191,7 @@ DNS.2 = staging.<%= host_name %> # Optionally, add additional domains (I've adde
 IP.1 = 127.0.0.1 # Optionally, add an IP address (if the connection which you hav
 ```
 Putting it all together, we can now generate the self-signed certificate:
- ```
+ ```elixir
 System.cmd(
   openssl,
   [
