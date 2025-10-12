@@ -212,9 +212,14 @@ System.cmd(
 ## Bibliography
 
 [Create and validate the CA certificate](https://docs.digi.com//resources/documentation/digidocs/90001085/tasks/t_create_and_validate_ca_certificate.htm)
+
 [Self-Signed Certificate Diagram](https://docs.google.com/drawings/d/1OxvX7L7Yea43Qr2RA-KJiZTZFIpGzrh1sW7yeLGCsRI/edit)
+
 [Open SSL Configuration Examples](https://www.ibm.com/docs/en/hpvs/1.2.x?topic=reference-openssl-configuration-examples)
+
 [Root CA Configuration File](https://jamielinux.com/docs/openssl-certificate-authority/appendix/root-configuration-file.html)
+
 [Create Certificates Using Config Files](https://apfelboymchen.net/gnu/notes/openssl%20multidomain%20with%20config%20files.html)
+
 [Create CSR with Config File](https://www.terataki.net/2021/02/11/create-csr-with-a-configfile-using-openssl-on-ubuntu/)
 
